@@ -116,10 +116,18 @@ Request body:
 }
 ```
 
-Response:
+Response (201 Created):
 
-- `200 OK` - JWT token string
-- `4xx` - error message
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+Status codes:
+- `201 Created` - User created successfully
+- `400 Bad Request` - Validation error
+- `409 Conflict` - User already exists
 
 #### `POST /api/v1/user/signin`
 
@@ -134,10 +142,18 @@ Request body:
 }
 ```
 
-Response:
+Response (200 OK):
 
-- `200 OK` - JWT token string
-- `401 Unauthorized` - invalid credentials
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+Status codes:
+- `200 OK` - Authentication successful
+- `400 Bad Request` - Validation error
+- `401 Unauthorized` - Invalid credentials
 
 ### Blog Routes
 
@@ -145,26 +161,75 @@ Response:
 >
 > Example:
 >
-> `Authorization: Bearer <token>`
+> ```
+> Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+> ```
 
-#### `GET /api/v1/blog/bulk`
+#### `GET /api/v1/blog`
 
-Fetch all blog posts.
+Fetch all published blog posts.
 
-Response:
+Response (200 OK):
 
-- `200 OK` - JSON array of posts
+```json
+[
+  {
+    "id": "uuid",
+    "title": "Post Title",
+    "content": "Post content...",
+    "published": true,
+    "authorId": "user-uuid",
+    "author": {
+      "id": "user-uuid",
+      "name": "Jane Doe",
+      "email": "jane@example.com"
+    }
+  }
+]
+```
+
+#### `GET /api/v1/blog/my-posts`
+
+Fetch all posts created by the authenticated user (both published and draft).
+
+Response (200 OK):
+
+```json
+[
+  {
+    "id": "uuid",
+    "title": "My Draft Post",
+    "content": "...",
+    "published": false,
+    "authorId": "user-uuid",
+    "author": { ... }
+  }
+]
+```
 
 #### `GET /api/v1/blog/:id`
 
 Fetch a single blog post by ID.
 
-Response:
+Response (200 OK):
 
-- `200 OK` - JSON post object
-- `404` or `null` if not found
+```json
+{
+  "id": "uuid",
+  "title": "Post Title",
+  "content": "...",
+  "published": true,
+  "authorId": "user-uuid",
+  "author": { ... }
+}
+```
 
-#### `POST /api/v1/blog/`
+Status codes:
+- `200 OK` - Post found
+- `404 Not Found` - Post doesn't exist
+- `403 Forbidden` - Post is draft from another user
+
+#### `POST /api/v1/blog`
 
 Create a new blog post for the authenticated user.
 
@@ -177,27 +242,76 @@ Request body:
 }
 ```
 
-Response:
-
-- `200 OK` - success message
-
-#### `PUT /api/v1/blog/`
-
-Update an existing blog post.
-
-Request body:
+Response (201 Created):
 
 ```json
 {
-  "id": "<post-id>",
-  "title": "Updated title",
-  "content": "Updated content."
+  "id": "uuid",
+  "title": "My first post",
+  "content": "This is the blog content.",
+  "published": false,
+  "authorId": "user-uuid",
+  "author": {
+    "id": "user-uuid",
+    "name": "Jane Doe",
+    "email": "jane@example.com"
+  }
 }
 ```
 
-Response:
+Status codes:
+- `201 Created` - Post created successfully
+- `400 Bad Request` - Validation error
 
-- `200 OK` - JSON object containing updated `id`
+#### `PUT /api/v1/blog/:id`
+
+Update an existing blog post (author only).
+
+Request body (all fields optional):
+
+```json
+{
+  "title": "Updated title",
+  "content": "Updated content...",
+  "published": true
+}
+```
+
+Response (200 OK):
+
+```json
+{
+  "id": "uuid",
+  "title": "Updated title",
+  "content": "Updated content...",
+  "published": true,
+  "authorId": "user-uuid",
+  "author": { ... }
+}
+```
+
+Status codes:
+- `200 OK` - Post updated successfully
+- `400 Bad Request` - Validation error
+- `403 Forbidden` - Not the post author
+- `404 Not Found` - Post doesn't exist
+
+#### `DELETE /api/v1/blog/:id`
+
+Delete a blog post (author only).
+
+Response (200 OK):
+
+```json
+{
+  "message": "Post deleted successfully"
+}
+```
+
+Status codes:
+- `200 OK` - Post deleted successfully
+- `403 Forbidden` - Not the post author
+- `404 Not Found` - Post doesn't exist
 
 ## Notes
 

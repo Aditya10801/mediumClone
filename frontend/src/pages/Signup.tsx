@@ -1,75 +1,118 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import axios from 'axios';
 
 export default function Signup() {
+    const navigate = useNavigate();
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        try {
+            const response = await axios.post(`${backendUrl}/user/signup`, { name, email, password });
+            const token = response.data;
+            localStorage.setItem('token', token);
+            navigate('/blogs');
+        }
+        catch (err) {
+            setError(err.response?.data || 'Registration rejected.');
+            console.error(err);
+        }
+        finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900">
-            <div className="mx-auto max-w-4xl px-6 py-10">
-                <div className="mb-8 flex flex-col gap-4 rounded-[2rem] border border-slate-200 bg-white p-10 shadow-xl sm:p-12">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-sm uppercase tracking-[0.35em] text-slate-500">Join the community</p>
-                            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-900">Create your account</h1>
-                            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-                                Sign up to publish stories, follow writers, and connect with a community of readers.
-                            </p>
-                        </div>
-                        <Link
-                            to="/signin"
-                            className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
-                        >
-                            Already have an account?
-                        </Link>
+        <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-50 px-4 selection:bg-red-600 selection:text-white font-sans">
+            <div className="w-full max-w-md py-8">
+                <div className="border border-zinc-900 bg-zinc-950 p-8 sm:p-12">
+                    <div className="mb-10 text-center">
+                        <p className="text-xs font-black uppercase tracking-[0.4em] text-red-500">Node Generation</p>
+                        <h1 className="mt-2 text-3xl font-black tracking-tighter uppercase text-white">Register</h1>
                     </div>
-                </div>
-                <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl sm:p-10">
-                    <form className="space-y-6">
+
+                    {error && (
+                        <div className="mb-6 border border-red-900 bg-red-950/20 p-4 text-xs font-bold uppercase tracking-wider text-red-400">
+                            {error}
+                        </div>
+                    )}
+
+                    <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-slate-700">
-                                Name
+                            <label htmlFor="name" className="block text-xs font-black uppercase tracking-widest text-zinc-400">
+                                Handle Name
                             </label>
                             <input
                                 type="text"
                                 id="name"
-                                name="name"
-                                placeholder="Your full name"
-                                className="mt-2 block w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-4 text-base text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                                required
+                                disabled={loading}
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Jane Doe"
+                                className="mt-2 block w-full border border-zinc-800 bg-zinc-900/20 px-4 py-3.5 text-base font-medium outline-none transition-all placeholder:text-zinc-800 focus:bg-transparent focus:border-red-600 disabled:opacity-50 text-white"
                             />
                         </div>
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-slate-700">
-                                Email address
+                            <label htmlFor="email" className="block text-xs font-black uppercase tracking-widest text-zinc-400">
+                                Network Address (Email)
                             </label>
                             <input
                                 type="email"
                                 id="email"
-                                name="email"
-                                placeholder="you@example.com"
-                                className="mt-2 block w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-4 text-base text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                                required
+                                disabled={loading}
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="name@domain.com"
+                                className="mt-2 block w-full border border-zinc-800 bg-zinc-900/20 px-4 py-3.5 text-base font-medium outline-none transition-all placeholder:text-zinc-800 focus:bg-transparent focus:border-red-600 disabled:opacity-50 text-white"
                             />
                         </div>
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
-                                Password
+                            <label htmlFor="password" className="block text-xs font-black uppercase tracking-widest text-zinc-400">
+                                Security Key (Password)
                             </label>
                             <input
                                 type="password"
                                 id="password"
-                                name="password"
-                                placeholder="Choose a strong password"
-                                className="mt-2 block w-full rounded-3xl border border-slate-300 bg-slate-50 px-4 py-4 text-base text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:ring-2 focus:ring-slate-200"
+                                required
+                                disabled={loading}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="mt-2 block w-full border border-zinc-800 bg-zinc-900/20 px-4 py-3.5 text-base font-medium outline-none transition-all placeholder:text-zinc-800 focus:bg-transparent focus:border-red-600 disabled:opacity-50 text-white"
                             />
                         </div>
-                        <div>
-                            <button
-                                type="submit"
-                                className="inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-6 py-4 text-sm font-semibold text-white transition hover:bg-slate-800"
-                            >
-                                Create account
-                            </button>
-                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-zinc-50 py-4 text-xs font-black uppercase tracking-widest text-zinc-950 hover:bg-red-600 hover:text-white transition-colors disabled:bg-zinc-800 disabled:text-zinc-600"
+                        >
+                            {loading ? 'Provisioning...' : 'Generate Node'}
+                        </button>
                     </form>
+
+                    <div className="mt-10 border-t border-zinc-900 pt-6 text-center">
+                        <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                            Linked node exists?{' '}
+                            <Link to="/signin" className="text-zinc-50 font-black underline hover:text-red-500 transition-colors ml-1">
+                                Sign In
+                            </Link>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
-    )
+    );
 }
