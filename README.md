@@ -1,4 +1,4 @@
-# MediumClone
+# Sortie
 
 A full-stack Medium-style blogging clone with a React + Vite frontend and a Cloudflare Workers + Hono backend.
 
