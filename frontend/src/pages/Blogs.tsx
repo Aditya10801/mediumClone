@@ -1,13 +1,21 @@
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 import axios from 'axios';
+
+interface BlogType {
+    id: string;
+    title: string;
+    content: string;
+    published: boolean;
+    authorId: string;
+}
 
 export default function Blogs() {
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
     
-    const [blogs, setBlogs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [blogs, setBlogs] = useState<BlogType[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string>('');
 
     useEffect(() => {
         const fetchBlogs = async () => {
@@ -21,7 +29,11 @@ export default function Blogs() {
                 setBlogs(response.data);
             } catch (err) {
                 console.error(err);
-                setError(err.response?.data || 'Failed to fetch stories from the network cluster.');
+                if (axios.isAxiosError(err)) {
+                    setError(err.response?.data || 'Failed to sync index files.');
+                } else {
+                    setError('An unexpected error occurred.');
+                }
             } finally {
                 setLoading(false);
             }
@@ -31,80 +43,73 @@ export default function Blogs() {
     }, [backendUrl]);
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-50 selection:bg-red-600 selection:text-white antialiased">
+        <div className="min-h-screen bg-[#fcfbf9] text-zinc-900 selection:bg-zinc-900 selection:text-white antialiased font-sans">
             <div className="mx-auto max-w-5xl px-6 py-16">
-                {/* Sharp Editorial Heading Block */}
-                <div className="mb-16 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between border-b border-zinc-800 pb-8">
+                <div className="mb-16 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between border-b border-zinc-200 pb-8">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.4em] text-red-500">Repository</p>
-                        <h1 className="mt-2 text-4xl font-black tracking-tighter uppercase text-white leading-none sm:text-5xl">
-                            The Feed
+                        <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-zinc-400 block">The public feed</span>
+                        <h1 className="mt-2 text-4xl font-black tracking-tight uppercase text-zinc-900 leading-none sm:text-5xl">
+                            Essays & Logs
                         </h1>
-                        <p className="mt-4 max-w-md text-sm font-medium text-zinc-400 leading-relaxed">
-                            A decentralized stream of manifestos, tech write-ups, and raw perspective pieces.
-                        </p>
                     </div>
                     <Link
                         to="/create"
-                        className="inline-flex items-center justify-center bg-red-600 px-6 py-3.5 text-xs font-black uppercase tracking-widest text-white hover:bg-red-500 transition-colors"
+                        className="inline-flex items-center justify-center bg-zinc-900 px-6 py-3.5 text-xs font-bold uppercase tracking-widest text-white hover:bg-zinc-800 transition-colors"
                     >
                         New Entry
                     </Link>
                 </div>
 
                 {loading && (
-                    <div className="grid gap-4 md:grid-cols-2">
-                        {[1, 2, 3, 4].map((n) => (
-                            <div key={n} className="border border-zinc-900 bg-zinc-900/20 p-8 space-y-4">
-                                <div className="h-6 bg-zinc-800 w-3/4 animate-pulse" />
-                                <div className="h-4 bg-zinc-800 w-full animate-pulse" />
+                    <div className="space-y-12">
+                        {[1, 2, 3].map((n) => (
+                            <div key={n} className="border-b border-zinc-100 pb-12 space-y-4">
+                                <div className="h-8 bg-zinc-200/60 w-2/3 animate-pulse" />
+                                <div className="h-4 bg-zinc-200/60 w-full animate-pulse" />
+                                <div className="h-4 bg-zinc-200/60 w-4/5 animate-pulse" />
                             </div>
                         ))}
                     </div>
                 )}
 
                 {error && (
-                    <div className="border border-red-950 bg-red-950/20 p-6 text-center text-xs font-bold uppercase tracking-wider text-red-400">
+                    <div className="border border-zinc-200 bg-white p-6 text-center text-xs font-bold uppercase tracking-wider text-zinc-500">
                         {error}
                     </div>
                 )}
 
                 {!loading && !error && blogs.length === 0 && (
-                    <div className="border border-dashed border-zinc-800 bg-zinc-900/10 p-16 text-center">
-                        <p className="font-bold text-sm uppercase tracking-wider text-zinc-500">No active transmissions found.</p>
-                        <Link to="/create" className="mt-4 inline-block bg-zinc-50 px-4 py-2 text-xs font-black uppercase tracking-widest text-zinc-950 hover:bg-red-500 hover:text-white transition-colors">
-                            Initialize Broadcast
+                    <div className="border border-dashed border-zinc-300 bg-white/50 p-16 text-center">
+                        <p className="font-medium text-sm text-zinc-400 uppercase tracking-wider">No catalog records stored.</p>
+                        <Link to="/create" className="mt-4 inline-block bg-zinc-900 px-5 py-2 text-xs font-bold uppercase tracking-widest text-white hover:bg-zinc-800 transition-colors">
+                            Initialize First Entry
                         </Link>
                     </div>
                 )}
 
-                {/* Grid Layout featuring ultra-clean cards with sharp red accent tags */}
                 {!loading && !error && blogs.length > 0 && (
-                    <div className="grid gap-px bg-zinc-900 border border-zinc-900 md:grid-cols-2">
+                    <div className="space-y-16">
                         {blogs.map((blog) => (
-                            <Link
-                                key={blog.id}
-                                to={`/blog/${blog.id}`}
-                                className="group flex flex-col justify-between bg-zinc-950 p-8 transition-colors hover:bg-zinc-900/40"
-                            >
-                                <div>
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <span className="w-1.5 h-1.5 bg-red-600 rounded-none group-hover:bg-red-500 transition-colors" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-zinc-400">
-                                            LOG_NODE // {blog.id.substring(0, 5)}
-                                        </span>
+                            <article key={blog.id} className="group border-b border-zinc-200 pb-12 last:border-none">
+                                <div className="grid gap-6 md:grid-cols-[1fr_2fr] items-start">
+                                    <div className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 md:pt-2">
+                                        REF // {blog.id.substring(0, 8)}
                                     </div>
-                                    <h2 className="text-2xl font-black uppercase tracking-tight text-white group-hover:text-red-500 transition-colors leading-tight">
-                                        {blog.title}
-                                    </h2>
-                                    <p className="mt-4 text-zinc-400 text-sm leading-relaxed font-medium line-clamp-3">
-                                        {blog.content}
-                                    </p>
+                                    <div>
+                                        <h2 className="text-3xl font-black uppercase tracking-tight text-zinc-900 hover:text-zinc-700 transition-colors leading-tight">
+                                            <Link to={`/blog/${blog.id}`}>{blog.title}</Link>
+                                        </h2>
+                                        <p className="mt-4 text-zinc-600 text-base leading-relaxed font-normal line-clamp-4">
+                                            {blog.content}
+                                        </p>
+                                        <div className="mt-6">
+                                            <Link to={`/blog/${blog.id}`} className="text-xs font-bold uppercase tracking-widest text-zinc-900 group-hover:underline">
+                                                Read Entry →
+                                            </Link>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="mt-8 text-[10px] font-black uppercase tracking-widest text-zinc-500 group-hover:text-white transition-colors">
-                                    Open Terminal payload ↗
-                                </div>
-                            </Link>
+                            </article>
                         ))}
                     </div>
                 )}
